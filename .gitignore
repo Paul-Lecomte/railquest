@@ -1,2 +1,9 @@
+# Main
 .idea
 .git
+
+# Frontend
+./frontend/node_modules
+./frontend/package-lock.json
+
+# Backend
