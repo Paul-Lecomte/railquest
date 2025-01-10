@@ -28,6 +28,14 @@ The project includes a backend built with Node.js and an interactive frontend bu
 
 ## TODO
 Things done and not yet done:
+- Design
+    - [ ] Moodboard and ideas
+    - [ ] Make the design for the pages
+        - [ ] Home page design
+        - [ ] Search page design
+        - [ ] Historic page design
+        - [ ] User page design
+        - [ ] Error page design
 - Backend
     - Route Management
         - [ ] Fetch station data
