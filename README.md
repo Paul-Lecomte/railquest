@@ -5,7 +5,7 @@
 # RailQuest
 
 ## About the project
-RailQuest is a train route planner that helps users find the shortest and most efficient routes between train stations. It aims to leverage Dijkstra's algorithm to calculate optimal paths and eventually support real-time updates for train schedules and delays using GTFS data.
+RailQuest is a train route planner that helps users find the shortest and most efficient routes between train stations. It aims to leverage Dijkstra's algorithm to calculate optimal paths and eventually support real-time updates for train schedules and delays using GTFS data. For now the focus will be put on the backend to have a functional API the frontend will come well after that.
 
 The project includes a backend built with Node.js and an interactive frontend built using React.js, TailwindCSS, and Material Tailwind.
 
