@@ -51,7 +51,3 @@ const admin = asyncHandler(async (req, res, next) => {
     }
 });
 
-module.exports = {
-    protect,
-    admin
-};
