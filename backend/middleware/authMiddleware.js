@@ -50,3 +50,8 @@ const admin = asyncHandler(async (req, res, next) => {
         return res.redirect('/login');
     }
 });
+
+module.exports = {
+    protect,
+    admin
+};
