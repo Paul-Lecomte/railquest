@@ -37,6 +37,10 @@ Things done and not yet done:
         - [ ] User page design
         - [ ] Error page design
 - Backend
+    - General
+        - [x] Error handling
+        - [x] DB connection
+        - [x] Cors and allowed origins
     - Route Management
         - [ ] Fetch station data
         - [ ] Calculate shortest route using Dijkstra's algorithm
