@@ -42,7 +42,9 @@ Things done and not yet done:
         - [ ] Calculate shortest route using Dijkstra's algorithm
         - [ ] Integrate real-time GTFS feed
     - User Management
-        - [ ] Basic authentication and session handling
+        - [x] User model
+        - [x] Basic authentication and session handling
+        - [x] Token handling
 - Frontend
     - Route Finder
         - [ ] User input for start and end stations
