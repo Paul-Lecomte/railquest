@@ -90,3 +90,15 @@ const updateUserProfile = asyncHandler(async(req, res)=>{
         role:updatedUser.role
     })
 })
+
+// Desc     Logout the user
+// Route    POST /api/user/logout
+// Access   Private
+const logout = asyncHandler(async(req, res)=>{
+    res.cookie('jwt', '', {
+        httpOnly: true,
+        expires: new Date(0)
+    })
+    res.status(200).json({message: 'User disconnected with success.'})
+})
+
