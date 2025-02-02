@@ -136,3 +136,15 @@ const getUserProfile = asyncHandler(async(req, res) =>{
         throw new Error("User not found.")
     }
 })
+
+// Desc    Get all users
+// Route   GET /api/users
+// Access  Private
+const getUsers = asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find(); // Fetch all users from DB
+        res.json(users); // Return an array of users
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching users' });
+    }
+});
