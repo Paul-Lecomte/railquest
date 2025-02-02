@@ -116,3 +116,23 @@ const deleteUser = asyncHandler(async (req, res) => {
     }
     res.status(200).json({ message: "User has been successfully deleted." });
 });
+
+// Desc     Get the user profile with an id
+// Route    GET /api/user/profiles
+// Access   Private
+const getUserProfile = asyncHandler(async(req, res) =>{
+    const user = await User.findById(req.params._id)
+
+    if (user){
+        res.status(201).json({
+            _id: user._id,
+            last_name: user.last_name,
+            first_name: user.first_name,
+            email: user.email,
+            role:user.role
+        })
+    } else {
+        res.status(400)
+        throw new Error("User not found.")
+    }
+})
