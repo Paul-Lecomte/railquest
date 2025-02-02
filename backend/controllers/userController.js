@@ -102,3 +102,17 @@ const logout = asyncHandler(async(req, res)=>{
     res.status(200).json({message: 'User disconnected with success.'})
 })
 
+// Desc     Delete a user
+// Route    DELETE /api/user/:id
+// Access   Private
+const deleteUser = asyncHandler(async (req, res) => {
+    const userId = req.params._id;
+    // Attempt to find and delete the user
+    const result = await User.deleteOne({ _id: userId });
+    // Check if the user was found and deleted
+    if (result.deletedCount === 0) {
+        res.status(404);
+        throw new Error("User not found.");
+    }
+    res.status(200).json({ message: "User has been successfully deleted." });
+});
