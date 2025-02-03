@@ -1,4 +1,5 @@
 // Import required modules
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -27,6 +28,9 @@ mongoose.connect(DATABASE_URI, {
 })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Error connecting to MongoDB:', err));
+
+// user route
+app.use('/api/user', require('./routes/userRoutes'));
 
 // Routes
 app.get('/', (req, res) => {
