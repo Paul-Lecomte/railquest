@@ -148,3 +148,13 @@ const getUsers = asyncHandler(async (req, res) => {
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
+
+module.exports = {
+    login,
+    register,
+    updateUserProfile,
+    logout,
+    deleteUser,
+    getUsers,
+    getUserProfile
+}
