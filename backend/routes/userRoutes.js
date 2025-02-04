@@ -15,3 +15,9 @@ router.route('/update').put(protect, userController.updateUserProfile)
 
 // Route to delete a user
 router.route('/delete').delete(protect, userController.deleteUser)
+
+// Route to get a specific user
+router.route('/:id').get(protect, userController.getUserProfile)
+
+// Route to get all the users
+router.route('/all').get(admin, userController.getUsers)
