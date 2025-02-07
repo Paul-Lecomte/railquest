@@ -15,7 +15,6 @@ const login = asyncHandler(async(req, res) =>{
             last_name: user.last_name,
             first_name: user.first_name,
             email: user.email,
-            role: user.roleco
         })
 
     } else {
