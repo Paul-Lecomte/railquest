@@ -73,3 +73,6 @@ async function updateGTFSData() {
     const stops = await parseCSV('stops.txt');
     console.log('Parsed stops:', stops.slice(0, 5)); // Print first 5 records for verification
 }
+
+// Run the script
+updateGTFSData().catch(console.error);
