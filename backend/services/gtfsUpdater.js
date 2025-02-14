@@ -46,6 +46,20 @@ async function extractGTFS(){
         await pipeline(readStream, unzip, writeStream);
         console.log("GTFS data extracted successfully")
     } catch (error) {
-        console.log("Error extracting GTFS Data");
+        console.log("Error extracting GTFS Data", error);
     }
+}
+
+// Parsing the GTFS data
+function parseCSV(fileName) {
+    const filePath = path.join(DATA_DIR, fileName);
+    const results = [];
+
+    return new Promise((resolve, reject) => {
+        fs.createReadStream(filePath)
+            .pipe(parse({ columns: true }))
+            .on('data', (data) => results.push(data))
+            .on('end', () => resolve(results))
+            .on('error', reject);
+    });
 }
