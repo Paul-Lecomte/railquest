@@ -63,3 +63,13 @@ function parseCSV(fileName) {
             .on('error', reject);
     });
 }
+
+// Main function to handle the GTFS data process
+async function updateGTFSData() {
+    await downloadGTFS(); // Step 1: Download the data
+    await extractGTFS();  // Step 2: Extract the ZIP file
+
+    // Step 3: Parse stops.txt as an example
+    const stops = await parseCSV('stops.txt');
+    console.log('Parsed stops:', stops.slice(0, 5)); // Print first 5 records for verification
+}
