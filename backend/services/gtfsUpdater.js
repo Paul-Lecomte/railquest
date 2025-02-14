@@ -34,3 +34,18 @@ async function downloadGTFS() {
         console.log("Error downloading GTFS...");
     }
 }
+
+// Function to extract GTFS ZIP file
+async function extractGTFS(){
+    console.log("Extracting GTFS...");
+    const unzip = zlib.createGunzip();
+    const readStream = fs.createReadStream(ZIP_FILE_PATH);
+    const writeStream = fs.createWriteStream(DATA_DIR);
+
+    try {
+        await pipeline(readStream, unzip, writeStream);
+        console.log("GTFS data extracted successfully")
+    } catch (error) {
+        console.log("Error extracting GTFS Data");
+    }
+}
