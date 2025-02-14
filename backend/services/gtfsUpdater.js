@@ -12,3 +12,8 @@ const pipeline = promisify(stream.pipeline);
 const GTFS_URL = 'https://opentransportdata.swiss/dataset/fahrplan-2025-gtfs2020/download';
 const DATA_DIR = path.join(__dirname, 'gtfs_data'); // Directory to store GTFS data
 const ZIP_FILE_PATH = path.join(DATA_DIR, 'gtfs.zip'); // Path for downloaded ZIP file
+
+// Ensure the data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
