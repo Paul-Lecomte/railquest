@@ -5,3 +5,10 @@ const zlib = require('zlib');
 const stream = require('stream');
 const { promisify } = require('util');
 const { parse } = require('csv-parse');
+
+const pipeline = promisify(stream.pipeline);
+
+// URL of the GTFS dataset
+const GTFS_URL = 'https://opentransportdata.swiss/dataset/fahrplan-2025-gtfs2020/download';
+const DATA_DIR = path.join(__dirname, 'gtfs_data'); // Directory to store GTFS data
+const ZIP_FILE_PATH = path.join(DATA_DIR, 'gtfs.zip'); // Path for downloaded ZIP file
