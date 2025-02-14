@@ -17,3 +17,20 @@ const ZIP_FILE_PATH = path.join(DATA_DIR, 'gtfs.zip'); // Path for downloaded ZI
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
 }
+
+// Function to download GTFS dataset
+async function downloadGTFS() {
+    console.log("Downloading GTFS...");
+    try {
+        const response = await axios({
+            url: GTFS_URL,
+            method: 'GET',
+            responseType: 'stream',
+        });
+
+        await pipeline(response.data, fs.createWriteStream(ZIP_FILE_PATH));
+        console.log("Download complete.");
+    } catch (error) {
+        console.log("Error downloading GTFS...");
+    }
+}
