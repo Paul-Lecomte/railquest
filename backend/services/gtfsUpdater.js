@@ -38,17 +38,20 @@ async function downloadGTFS() {
 async function extractGTFS() {
     console.log('Extracting GTFS data...');
     try {
-        // Open the zip file and extract to the gtfs_data directory
         const directory = await unzipper.Open.file(ZIP_FILE_PATH);
 
-        // Extract all files inside the ZIP to the DATA_DIR
+        // Wait until all files are extracted before proceeding
         await Promise.all(directory.files.map(file => {
-            return file.stream().pipe(fs.createWriteStream(path.join(DATA_DIR, file.path)));
+            return new Promise((resolve, reject) => {
+                file.stream()
+                    .pipe(fs.createWriteStream(path.join(DATA_DIR, file.path)))
+                    .on('finish', resolve)
+                    .on('error', reject);
+            });
         }));
 
         console.log('GTFS data extracted successfully');
 
-        // Log the contents of the directory to debug the structure
         fs.readdir(DATA_DIR, (err, files) => {
             if (err) {
                 console.error('Error reading directory:', err);
@@ -62,7 +65,7 @@ async function extractGTFS() {
     }
 }
 
-// Function to parse a specific GTFS CSV file (example: stops.txt)
+// Function to parse a specific GTFS CSV file
 function parseCSV(fileName) {
     const filePath = path.join(DATA_DIR, fileName);
     const results = [];
@@ -90,8 +93,8 @@ function parseCSV(fileName) {
                 // Remove BOM from all keys and values in the row
                 if (firstChunk) {
                     data = Object.keys(data).reduce((acc, key) => {
-                        const cleanedKey = key.replace(/^\ufeff/, ''); // Remove BOM from key
-                        const cleanedValue = data[key].replace(/^\ufeff/, ''); // Remove BOM from value
+                        const cleanedKey = key.replace(/^\ufeff/, '');
+                        const cleanedValue = data[key].replace(/^\ufeff/, '');
                         acc[cleanedKey] = cleanedValue;
                         return acc;
                     }, {});
@@ -100,7 +103,7 @@ function parseCSV(fileName) {
                 results.push(data);
             })
             .on('end', () => {
-                console.log(`Parsing complete. Skipped ${skippedRows} rows.`);
+                console.log(`Parsing ${fileName} complete. Skipped ${skippedRows} rows.`);
                 resolve(results);
             })
             .on('error', (err) => {
@@ -108,8 +111,8 @@ function parseCSV(fileName) {
                 // Handling quote errors by skipping the problematic row and continuing parsing
                 if (err.code === 'CSV_QUOTE_NOT_CLOSED') {
                     skippedRows += 1;
-                    console.warn(`Skipping row due to unclosed quote at line ${err.line}`);
-                    return;  // Continue parsing despite the error
+                    console.warn('Skipping row due to unclosed quote at line ${err.line}');
+                    return;  // Continue parsing
                 }
                 reject(err);
             });
@@ -121,16 +124,21 @@ async function updateGTFSData() {
     await downloadGTFS(); // Step 1: Download the data
     await extractGTFS();  // Step 2: Extract the ZIP file
 
-    // Step 3: Check the directory structure to ensure 'stops.txt' is in the correct location
-    const stops = await parseCSV('stops.txt');
-    console.log('Parsed stops:', stops.slice(0, 5)); // Print first 5 records for verification
+    // Step 3: List of all GTFS files to parse
+    const filesToParse = [
+        'agency.txt', 'calendar.txt', 'calendar_dates.txt', 'feed_info.txt',
+        'routes.txt', 'stop_times.txt', 'stops.txt', 'transfers.txt', 'trips.txt'
+    ];
 
-    // Parse other relevant files
-    const routes = await parseCSV('routes.txt');
-    console.log('Parsed routes:', routes.slice(0, 5)); // Print first 5 records for verification
-
-    const trips = await parseCSV('trips.txt');
-    console.log('Parsed trips:', trips.slice(0, 5)); // Print first 5 records for verification
+    // Parse all files and log results
+    for (const file of filesToParse) {
+        try {
+            const parsedData = await parseCSV(file);
+            console.log('Parsed ${file}:', parsedData.slice(0, 5)); // Print first 5 records for verification
+        } catch (error) {
+            console.error('Error parsing ${file}:', error);
+        }
+    }
 }
 
 // Run the script
