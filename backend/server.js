@@ -27,6 +27,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/user', require('./routes/userRoutes'));
+app.use('/api/gtfs', require('./routes/gtfsRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Welcome to the RailQuest API!');
