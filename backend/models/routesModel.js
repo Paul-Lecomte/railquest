@@ -6,7 +6,7 @@ const routesSchema = new mongoose.Schema({
     route_short_name: String,
     route_long_name: String,
     route_desc: String,
-    route_type: String,
+    route_type: Number, //GTFS has special route codes
 });
 
 module.exports = mongoose.model("Routes", routesSchema);
