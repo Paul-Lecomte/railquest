@@ -51,6 +51,7 @@ async function extractGTFS() {
         }));
 
         console.log('GTFS data extracted successfully');
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         fs.readdir(DATA_DIR, (err, files) => {
             if (err) {
@@ -134,7 +135,7 @@ async function updateGTFSData() {
     for (const file of filesToParse) {
         try {
             const parsedData = await parseCSV(file);
-            console.log('Parsed ${file}:', parsedData.slice(0, 5)); // Print first 5 records for verification
+            console.log('Parsed ${file}:', parsedData.slice(0, 1)); // Print first 5 records for verification
         } catch (error) {
             console.error('Error parsing ${file}:', error);
         }
