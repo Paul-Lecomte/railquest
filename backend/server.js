@@ -1,27 +1,25 @@
 require('dotenv').config();
 const express = require('express');
+const { errorHandler } = require('./middleware/errorHandler');
+const app = express();
 const mongoose = require('mongoose');
 const cors = require('cors');
-const morgan = require('morgan');
+const corsOptions = require('./config/corsOptions');
+const connectDB = require('./config/dbConnection');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const http = require('http');
-const connectDB = require('./config/dbConnection');
-const corsOptions = require('./config/corsOptions');
-const { errorHandler } = require('./middleware/errorHandler');
+const morgan = require('morgan');
 
 const PORT = process.env.PORT || 3000;
 
 // Connect to the database
 connectDB();
 
-// Initialize Express app
-const app = express();
-
-// Middleware
+// Server config
 app.use(cors(corsOptions));
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
 

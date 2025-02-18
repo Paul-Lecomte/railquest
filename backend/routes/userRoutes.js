@@ -21,3 +21,5 @@ router.route('/:id').get(protect, userController.getUserProfile)
 
 // Route to get all the users
 router.route('/all').get(admin, userController.getUsers)
+
+module.exports = router;
