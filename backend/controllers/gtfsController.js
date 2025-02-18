@@ -3,7 +3,7 @@ const path = require('path');
 const asyncHandler = require('express-async-handler');
 
 // Define the path to your gtfsUpdater.js file
-const gtfsUpdaterPath = path.join(__dirname, '../gtfsUpdater.js');
+const gtfsUpdaterPath = path.join(__dirname, '../services/gtfsUpdater.js');
 
 const updateGTFS = async (req, res) => {
     try {
