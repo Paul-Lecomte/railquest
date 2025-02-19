@@ -7,7 +7,6 @@ const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const connectDB = require('./config/dbConnection');
 const cookieParser = require('cookie-parser');
-const path = require('path');
 const http = require('http');
 const morgan = require('morgan');
 
