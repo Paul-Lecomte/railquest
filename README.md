@@ -37,7 +37,7 @@ Things done and not yet done:
         - [ ] Search page design
         - [ ] Historic page design
         - [ ] User page design
-        - [x] Error page design
+        - [ ] Error page design
 - Backend
     - General
         - [x] Error handling
