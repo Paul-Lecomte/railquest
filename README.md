@@ -9,6 +9,8 @@ RailQuest is a train route planner that helps users find the shortest and most e
 
 The project includes a backend built with Node.js and an interactive frontend built using React.js, TailwindCSS, and Material Tailwind.
 
+For storage reasons the mongoDB server is hosted locally if this web app would be deployed a real server will be hosted.
+
 ## Table of contents
 * [RailQuest](#railquest)
     * [About the project](#about-the-project)
@@ -42,7 +44,8 @@ Things done and not yet done:
         - [x] DB connection
         - [x] Cors and allowed origins
     - Route Management
-        - [ ] Fetch station data
+        - [x] Fetch GTFS data
+        - [x] Parse and save GTFS data
         - [ ] Calculate shortest route using Dijkstra's algorithm
         - [ ] Integrate real-time GTFS feed
     - User Management
