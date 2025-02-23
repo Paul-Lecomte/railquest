@@ -46,6 +46,8 @@ Things done and not yet done:
     - Route Management
         - [x] Fetch GTFS data
         - [x] Parse and save GTFS data
+        - [x] Created the necessary controllers for later on
+        - [x] Created the necessary routes for the frontend
         - [ ] Calculate shortest route using Dijkstra's algorithm
         - [ ] Integrate real-time GTFS feed
     - User Management
