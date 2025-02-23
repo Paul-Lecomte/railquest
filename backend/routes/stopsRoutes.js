@@ -3,6 +3,6 @@ const { getAllStops } = require('../controllers/stopsController');
 
 const router = express.Router();
 
-router.get('/allStops', getAllStops);
+router.get('/all', getAllStops);
 
 module.exports = router;
