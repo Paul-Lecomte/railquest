@@ -25,6 +25,11 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/gtfs', require('./routes/gtfsRoutes'));
+app.use('/api/stops', require('./routes/stopsRoutes'));
+app.use('/api/routes', require('./routes/routesRoutes'));
+app.use('/api/trips', require('./routes/tripsRoutes'));
+app.use('/api/timetable', require('./routes/timetableRoutes'));
+app.use('/api/raptor', require('./routes/raptorRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Welcome to the RailQuest API!');
