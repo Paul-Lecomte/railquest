@@ -10,3 +10,7 @@ const getTimeTableForStop = asyncHandler(async (req, res) => {
         res.status(500).json({message: 'Error fetching time table', error: err});
     }
 })
+
+module.export = {
+    getTimeTableForStop,
+}
