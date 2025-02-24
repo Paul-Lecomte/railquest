@@ -11,6 +11,6 @@ const getTimeTableForStop = asyncHandler(async (req, res) => {
     }
 })
 
-module.export = {
+module.exports = {
     getTimeTableForStop,
 }
