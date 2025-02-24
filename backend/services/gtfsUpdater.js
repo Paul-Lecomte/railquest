@@ -90,13 +90,13 @@ async function parseCSV(fileName, model, name) {
     return new Promise((resolve, reject) => {
         const readStream = fs.createReadStream(filePath);
         const parser = parse({
-            columns: true,
+            columns: (header) => header.map(col => col.trim().toLowerCase()), // Normalize column headers
             relax_column_count: true,
             skip_empty_lines: true,
         });
 
         let count = 0;
-        const batchSize = 10000;
+        const batchSize = 100000;
         const entriesToInsert = [];
 
         parser.on('data', (data) => {
