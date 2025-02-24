@@ -10,6 +10,6 @@ const getAllRoutes = asyncHandler(async (req, res) => {
     }
 })
 
-module.export = {
+module.exports = {
     getAllRoutes,
 }
