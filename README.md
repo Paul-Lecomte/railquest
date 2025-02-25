@@ -48,7 +48,7 @@ Things done and not yet done:
         - [x] Parse and save GTFS data
         - [x] Created the necessary controllers for later on
         - [x] Created the necessary routes for the frontend
-        - [ ] Calculate shortest route using Dijkstra's algorithm
+        - [ ] Calculate shortest route using RAPTOR (with my own twist) algorithm
         - [ ] Integrate real-time GTFS feed
     - User Management
         - [x] User model
