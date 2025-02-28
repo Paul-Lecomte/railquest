@@ -9,4 +9,4 @@ const routesSchema = new mongoose.Schema({
     route_type: Number, //GTFS has special route codes
 });
 
-module.exports = mongoose.model("Routes", routesSchema);
+module.exports = mongoose.model("Route", routesSchema);
