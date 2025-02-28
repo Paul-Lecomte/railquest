@@ -153,13 +153,13 @@ async function updateGTFSData() {
         const filesToParse = {
             'agency.txt': { model: Agency, name: 'Agency' },
             'calendar.txt': { model: Calendar, name: 'Calendar' },
-            'calendar_dates.txt': { model: CalendarDate, name: 'Calendar Dates' },
+            'calendar_dates.txt': { model: CalendarDate, name: 'Calendar Date' },
             'feed_info.txt': { model: FeedInfo, name: 'Feed Info' },
-            'routes.txt': { model: Route, name: 'Routes' },
-            'stop_times.txt': { model: StopTime, name: 'Stop Times' },
-            'stops.txt': { model: Stop, name: 'Stops' },
-            'transfers.txt': { model: Transfer, name: 'Transfers' },
-            'trips.txt': { model: Trip, name: 'Trips' }
+            'routes.txt': { model: Route, name: 'Route' },
+            'stop_times.txt': { model: StopTime, name: 'Stop Time' },
+            'stops.txt': { model: Stop, name: 'Stop' },
+            'transfers.txt': { model: Transfer, name: 'Transfer' },
+            'trips.txt': { model: Trip, name: 'Trip' }
         };
 
         // Clear existing data for each collection before inserting new data

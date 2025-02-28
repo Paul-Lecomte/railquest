@@ -3,194 +3,150 @@ const Route = require('../models/routesModel');
 const Trip = require('../models/tripsModel');
 const StopTime = require('../models/stopTimesModel');
 const Transfer = require('../models/transfersModel');
+const PriorityQueue = require('js-priority-queue');
 
-const runRaptor = async (originId, destinationId, departureTime) => {
+const runAstar = async (originId, destinationId, departureTime) => {
     try {
+        console.log(`\n=== A* Search Started ===`);
         console.log(`Origin ID: ${originId}, Destination ID: ${destinationId}`);
+
+        // Fetch all stops
+        console.log("Fetching all stops...");
         const stops = await Stop.find({});
         const stopIndexMap = new Map(stops.map((stop, index) => [stop.stop_id, index]));
+
         const INF = Number.MAX_SAFE_INTEGER;
 
         console.log(`Departure time received: ${departureTime}`);
         const departureTimeInMinutes = convertTimeToMinutes(departureTime);
-        console.log(`Departure time in minutes: ${departureTimeInMinutes}`);
+        console.log(`Converted departure time to minutes: ${departureTimeInMinutes}`);
 
         let arrivalTimes = new Map();
         let previousStops = new Map();
-        let missingTripOrRoute = new Set(); // Track which stops have missing trip_id or route_id
+        let missingTripOrRoute = new Set(); // Track missing trip_id or route_id
 
+        // Initialize the origin stop
         arrivalTimes.set(originId, departureTimeInMinutes);
-        previousStops.set(originId, null); // Set the origin's previous stop as null
-        let markedStops = new Set([originId]);
+        previousStops.set(originId, null);
+
+        // Priority queue for A* search
+        console.log("Initializing priority queue...");
+        const openSet = new PriorityQueue({ comparator: (a, b) => a.fCost - b.fCost });
+        openSet.queue({ stopId: originId, gCost: departureTimeInMinutes, fCost: departureTimeInMinutes + heuristic(originId, destinationId), previousStop: null });
+
+        let iterationCount = 0;
         let skippedCount = 0;
 
-        let round = 0;
-        while (markedStops.size > 0) {
-            console.log(`Round ${round + 1}: Processing marked stops...`);
-            let newMarkedStops = new Set();
+        while (openSet.length > 0) {
+            iterationCount++;
+            const { stopId, gCost, previousStop } = openSet.dequeue();
 
-            // Process marked stops
-            for (let stop of markedStops) {
-                if (!arrivalTimes.has(stop)) {
-                    // Update arrival time for transfers
-                    console.log(`Updating arrival time for transfer to stop ${stop}`);
-                    arrivalTimes.set(stop, departureTimeInMinutes); // Use the current departure time for first time
-                    previousStops.set(stop, originId); // Store the previous stop for path reconstruction
+            console.log(`\nProcessing stop: ${stopId}`);
+            console.log(`Current gCost: ${gCost}, fCost: ${gCost + heuristic(stopId, destinationId)}`);
+
+            // If destination reached, reconstruct path
+            if (stopId === destinationId) {
+                let path = [];
+                let currentStop = stopId;
+                while (currentStop) {
+                    path.unshift(currentStop);
+                    currentStop = previousStops.get(currentStop);
                 }
+                console.log('✅ Path found:', path);
+                console.log(`🚀 Total iterations: ${iterationCount}`);
+                return { success: true, route: path, departureTime, arrivalTime: convertMinutesToTime(gCost) };
             }
 
-            console.log('Previous stops after round ' + round + ':', Array.from(previousStops.entries()));
+            // Skip if we have already processed this stop with a better or equal gCost
+            if (arrivalTimes.has(stopId) && arrivalTimes.get(stopId) <= gCost) {
+                console.log(`Skipping stop ${stopId}, already visited with a better cost.`);
+                continue;
+            }
 
-            const stopTimePromises = Array.from(markedStops).map(stopId =>
-                StopTime.find({ stop_id: stopId }).populate({
-                    path: 'trip_id',
-                    populate: { path: 'route_id' }
-                })
-            );
+            arrivalTimes.set(stopId, gCost);
+            previousStops.set(stopId, previousStop);
 
-            const stopTimesArray = await Promise.all(stopTimePromises);
+            // Fetch stop times for the current stop
+            console.log(`Fetching stop times for stop ${stopId}...`);
+            const stopTimes = await StopTime.find({ stop_id: stopId }).populate({
+                path: 'trip_id',
+                populate: { path: 'route_id' }
+            });
 
-            // Process stop times
-            for (const stopTimes of stopTimesArray) {
-                for (const stopTime of stopTimes) {
-                    const trip = stopTime.trip_id;
-                    const route = trip?.route_id;
-                    const stopId = stopTime.stop_id;
+            for (const stopTime of stopTimes) {
+                const trip = stopTime.trip_id;
+                const route = trip?.route_id;
 
-                    // Check if trip_id and route_id are valid
-                    if (!trip || !route) {
-                        skippedCount++;
-                        if (!missingTripOrRoute.has(stopId)) {
-                            console.log(`Skipping stopTime due to missing trip_id or route_id for stop ${stopId}`);
-                            missingTripOrRoute.add(stopId);
-                        }
-                        continue;
+                if (!trip || !route) {
+                    skippedCount++;
+                    if (!missingTripOrRoute.has(stopId)) {
+                        console.warn(`⚠️ Skipping stopTime due to missing trip_id or route_id for stop ${stopId}`);
+                        missingTripOrRoute.add(stopId);
                     }
-
-                    // Check if stop_id exists in the Stops collection
-                    const stopExists = await Stop.exists({ stop_id: stopId });
-                    if (!stopExists) {
-                        console.log(`Skipping stopTime due to invalid stop_id ${stopId}`);
-                        continue;
-                    }
-
-                    const arrivalTimeInMinutes = convertTimeToMinutes(stopTime.arrival_time);
-                    const currentArrival = arrivalTimes.get(stopId) ?? INF;
-
-                    if (arrivalTimeInMinutes < currentArrival) {
-                        console.log(`Updating arrival time for stop ${stopId} to ${arrivalTimeInMinutes}`);
-                        arrivalTimes.set(stopId, arrivalTimeInMinutes);
-                        previousStops.set(stopId, stopId); // Adjusted: Set the previous stop as the current stop
-                        newMarkedStops.add(stopId);
-
-                        if (stopId === destinationId) {
-                            console.log(`Destination ${destinationId} reached at ${convertMinutesToTime(arrivalTimeInMinutes)} in round ${round + 1}`);
-                        }
-                    }
+                    continue;
                 }
+
+                const arrivalTimeInMinutes = convertTimeToMinutes(stopTime.arrival_time);
+                const newGCost = gCost + arrivalTimeInMinutes;
+                const hCost = heuristic(stopId, destinationId);
+                const fCost = newGCost + hCost;
+
+                console.log(`Queuing stop ${stopTime.stop_id} (gCost: ${newGCost}, hCost: ${hCost}, fCost: ${fCost})`);
+                openSet.queue({ stopId: stopTime.stop_id, gCost: newGCost, fCost, previousStop: stopId });
             }
 
-            const transferPromises = Array.from(markedStops).map(stopId =>
-                Transfer.find({ from_stop_id: stopId })
-            );
-            const transfersArray = await Promise.all(transferPromises);
+            // Fetch transfers for the current stop
+            console.log(`Fetching transfers from stop ${stopId}...`);
+            const transfers = await Transfer.find({ from_stop_id: stopId });
 
-            for (const transfers of transfersArray) {
-                for (const transfer of transfers) {
-                    const fromArrival = arrivalTimes.get(transfer.from_stop_id) ?? INF;
-                    const transferArrivalTime = fromArrival + transfer.min_transfer_time;
-                    const currentArrival = arrivalTimes.get(transfer.to_stop_id) ?? INF;
+            for (const transfer of transfers) {
+                const fromArrival = arrivalTimes.get(transfer.from_stop_id) ?? INF;
+                const transferArrivalTime = fromArrival + transfer.min_transfer_time;
+                const hCost = heuristic(transfer.to_stop_id, destinationId);
+                const fCost = transferArrivalTime + hCost;
 
-                    if (transferArrivalTime < currentArrival) {
-                        console.log(`Updating arrival time for transfer to stop ${transfer.to_stop_id}`);
-                        arrivalTimes.set(transfer.to_stop_id, transferArrivalTime);
-                        previousStops.set(transfer.to_stop_id, transfer.from_stop_id);
-                        newMarkedStops.add(transfer.to_stop_id);
-
-                        if (transfer.to_stop_id === destinationId) {
-                            console.log(`Transfer leads directly to destination at round ${round + 1}`);
-                        }
-                    }
-                }
-            }
-
-            if (newMarkedStops.size === 0) break;
-            markedStops = newMarkedStops;
-            round++;
-        }
-
-        let bestTime = INF;
-        let bestRound = -1;
-        for (const [round, arrivalTime] of arrivalTimes.entries()) {
-            if (arrivalTime < bestTime) {
-                bestTime = arrivalTime;
-                bestRound = round;
+                console.log(`Queuing transfer to stop ${transfer.to_stop_id} (gCost: ${transferArrivalTime}, hCost: ${hCost}, fCost: ${fCost})`);
+                openSet.queue({ stopId: transfer.to_stop_id, gCost: transferArrivalTime, fCost, previousStop: transfer.from_stop_id });
             }
         }
 
-        if (bestTime === INF) {
-            console.log('No route found');
-            return { success: false, message: 'No route found' };
-        }
+        console.log('❌ No route found');
+        console.log(`🔎 Total iterations: ${iterationCount}, Skipped stops: ${skippedCount}`);
+        return { success: false, message: 'No route found' };
 
-        const path = [];
-        let currentStop = destinationId;
-        console.log('Reconstructing path...');
-        while (currentStop) {
-            path.unshift(currentStop); // Add the current stop to the front of the path
-            console.log(`Reconstructed stop: ${currentStop}`);
-            currentStop = previousStops.get(currentStop);
-
-            if (!currentStop) {
-                console.log('No previous stop found for:', currentStop);
-                break; // Handle missing data more gracefully
-            }
-        }
-
-        console.log('Full reconstructed path:', path);
-
-        console.log(`Skipped ${skippedCount} stopTimes with missing trip or route_id.`);
-        if (skippedCount > 0) {
-            console.log('Check the stops with missing trip_id or route_id in your database.');
-        }
-
-        console.log('Route found successfully');
-        return {
-            success: true,
-            message: 'Fastest route found!',
-            route: path,
-            departureTime,
-            arrivalTime: convertMinutesToTime(bestTime)
-        };
     } catch (error) {
-        console.error('Error in runRaptor:', error);
+        console.error('🚨 Error in runAstar:', error);
         return { success: false, message: 'Error occurred while finding route', error };
     }
 };
 
+// Heuristic function (placeholder)
+const heuristic = (currentStopId, destinationId) => {
+    return Math.abs(parseInt(currentStopId, 10) - parseInt(destinationId, 10));
+};
 
-// Utility function to convert time in HH:MM or HH:MM:SS format to minutes
+// Convert HH:MM:SS format to minutes
 const convertTimeToMinutes = (time) => {
     if (!time) {
-        console.log("Invalid time format:", time);
+        console.log("❌ Invalid time format:", time);
         return NaN;
     }
     const timeParts = time.split(':').map(Number);
     if (timeParts.length < 2 || timeParts.length > 3) {
-        console.log("Error: Time format should be HH:MM or HH:MM:SS.");
+        console.log("⚠️ Error: Time format should be HH:MM or HH:MM:SS.");
         return NaN;
     }
 
     const [hours, minutes, seconds = 0] = timeParts;
     if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-        console.log("Error parsing time:", time);
+        console.log("❌ Error parsing time:", time);
         return NaN;
     }
 
     return hours * 60 + minutes + (seconds / 60);
 };
 
-// Utility function to convert time in minutes to HH:MM:SS format
+// Convert minutes to HH:MM:SS format
 const convertMinutesToTime = (minutes) => {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = Math.floor(minutes % 60);
@@ -198,4 +154,4 @@ const convertMinutesToTime = (minutes) => {
     return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-module.exports = { runRaptor };
+module.exports = { runAstar };
