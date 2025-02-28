@@ -10,4 +10,4 @@ const stopTimesSchema = new mongoose.Schema({
     drop_off_type: Number,
 });
 
-module.exports = mongoose.model("StopTimes", stopTimesSchema);
+module.exports = mongoose.model("StopTime", stopTimesSchema);
