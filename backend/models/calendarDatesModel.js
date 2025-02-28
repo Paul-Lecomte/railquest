@@ -6,4 +6,4 @@ const calendarDatesSchema = new mongoose.Schema({
     exception_type: Number,
 });
 
-module.exports = mongoose.model("CalendarDates", calendarDatesSchema);
+module.exports = mongoose.model("CalendarDate", calendarDatesSchema);
