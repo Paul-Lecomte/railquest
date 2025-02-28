@@ -11,4 +11,4 @@ const tripsSchema = new mongoose.Schema({
     shape_id: String,
 });
 
-module.exports = mongoose.model("Trips", tripsSchema);
+module.exports = mongoose.model("Trip", tripsSchema);
