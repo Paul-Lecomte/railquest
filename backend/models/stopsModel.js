@@ -9,4 +9,4 @@ const stopsSchema = new mongoose.Schema({
     parent_station: String,
 });
 
-module.exports = mongoose.model("Stops", stopsSchema);
+module.exports = mongoose.model("Stop", stopsSchema);
