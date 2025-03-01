@@ -5,7 +5,7 @@ const StopTime = require('../models/stopTimesModel');
 const Transfer = require('../models/transfersModel');
 const PriorityQueue = require('js-priority-queue');
 
-const runAstar = async (originId, destinationId, departureTime) => {
+const findFastestPath = async (originId, destinationId, departureTime) => {
     try {
         console.log(`\n=== A* Search Started ===`);
         console.log(`Origin ID: ${originId}, Destination ID: ${destinationId}`);
@@ -27,7 +27,6 @@ const runAstar = async (originId, destinationId, departureTime) => {
 
         let arrivalTimes = new Map();
         let previousStops = new Map();
-        let missingTripOrRoute = new Set(); // Track missing trip_id or route_id
         let closedSet = new Set(); // Closed set to track processed stops
 
         // Initialize the origin stop
@@ -40,7 +39,6 @@ const runAstar = async (originId, destinationId, departureTime) => {
         openSet.queue({ stopId: originId, gCost: departureTimeInMinutes, fCost: departureTimeInMinutes + heuristic(originId, destinationId, stops), previousStop: null });
 
         let iterationCount = 0;
-        let skippedCount = 0;
 
         while (openSet.length > 0) {
             iterationCount++;
@@ -99,11 +97,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
                 const route = trip?.route_id;
 
                 if (!trip || !route) {
-                    skippedCount++;
-                    if (!missingTripOrRoute.has(stopId)) {
-                        console.warn(`⚠️ Skipping stopTime due to missing trip_id or route_id for stop ${stopId}`);
-                        missingTripOrRoute.add(stopId);
-                    }
+                    console.warn(`⚠️ Skipping stopTime due to missing trip_id or route_id for stop ${stopId}`);
                     continue;
                 }
 
@@ -138,7 +132,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
         }
 
         console.log('❌ No route found');
-        console.log(`🔎 Total iterations: ${iterationCount}, Skipped stops: ${skippedCount}`);
+        console.log(`🔎 Total iterations: ${iterationCount}`);
         return { success: false, message: 'No route found' };
 
     } catch (error) {
@@ -190,4 +184,4 @@ const convertMinutesToTime = (minutes) => {
     return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-module.exports = { runAstar };
+module.exports = { findFastestPath };
