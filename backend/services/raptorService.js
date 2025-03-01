@@ -13,6 +13,10 @@ const runAstar = async (originId, destinationId, departureTime) => {
         // Fetch all stops
         console.log("Fetching all stops...");
         const stops = await Stop.find({});
+        if (stops.length === 0) {
+            throw new Error("No stops found in the database.");
+        }
+
         const stopIndexMap = new Map(stops.map((stop, index) => [stop.stop_id, index]));
 
         const INF = Number.MAX_SAFE_INTEGER;
@@ -33,7 +37,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
         // Priority queue for A* search
         console.log("Initializing priority queue...");
         const openSet = new PriorityQueue({ comparator: (a, b) => a.fCost - b.fCost });
-        openSet.queue({ stopId: originId, gCost: departureTimeInMinutes, fCost: departureTimeInMinutes + heuristic(originId, destinationId), previousStop: null });
+        openSet.queue({ stopId: originId, gCost: departureTimeInMinutes, fCost: departureTimeInMinutes + heuristic(originId, destinationId, stops), previousStop: null });
 
         let iterationCount = 0;
         let skippedCount = 0;
@@ -43,7 +47,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
             const { stopId, gCost, previousStop } = openSet.dequeue();
 
             console.log(`\nProcessing stop: ${stopId}`);
-            console.log(`Current gCost: ${gCost}, fCost: ${gCost + heuristic(stopId, destinationId)}`);
+            console.log(`Current gCost: ${gCost}, fCost: ${gCost + heuristic(stopId, destinationId, stops)}`);
 
             // Skip if stop is in the closedSet (already fully processed)
             if (closedSet.has(stopId)) {
@@ -105,7 +109,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
 
                 const arrivalTimeInMinutes = convertTimeToMinutes(stopTime.arrival_time);
                 const newGCost = gCost + arrivalTimeInMinutes;
-                const hCost = heuristic(stopId, destinationId);
+                const hCost = heuristic(stopId, destinationId, stops);
                 const fCost = newGCost + hCost;
 
                 console.log(`Queuing stop ${stopTime.stop_id} (gCost: ${newGCost}, hCost: ${hCost}, fCost: ${fCost})`);
@@ -125,7 +129,7 @@ const runAstar = async (originId, destinationId, departureTime) => {
             for (const transfer of transfers) {
                 const fromArrival = arrivalTimes.get(transfer.from_stop_id) ?? INF;
                 const transferArrivalTime = fromArrival + transfer.min_transfer_time;
-                const hCost = heuristic(transfer.to_stop_id, destinationId);
+                const hCost = heuristic(transfer.to_stop_id, destinationId, stops);
                 const fCost = transferArrivalTime + hCost;
 
                 console.log(`Queuing transfer to stop ${transfer.to_stop_id} (gCost: ${transferArrivalTime}, hCost: ${hCost}, fCost: ${fCost})`);
@@ -143,11 +147,18 @@ const runAstar = async (originId, destinationId, departureTime) => {
     }
 };
 
-
 // Heuristic function (improved for physical distance if coordinates available)
-const heuristic = (currentStopId, destinationId) => {
-    // Replace with real-world heuristic using geographical coordinates if possible
-    return Math.abs(parseInt(currentStopId, 10) - parseInt(destinationId, 10));
+const heuristic = (currentStopId, destinationId, stops) => {
+    const currentStop = stops.find(stop => stop.stop_id === currentStopId);
+    const destinationStop = stops.find(stop => stop.stop_id === destinationId);
+
+    if (!currentStop || !destinationStop || !currentStop.stop_lat || !currentStop.stop_lon || !destinationStop.stop_lat || !destinationStop.stop_lon) {
+        return 0; // Fallback if coordinates are not available
+    }
+
+    const dLat = destinationStop.stop_lat - currentStop.stop_lat;
+    const dLon = destinationStop.stop_lon - currentStop.stop_lon;
+    return Math.sqrt(dLat * dLat + dLon * dLon);
 };
 
 // Convert HH:MM:SS format to minutes
